@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminController;
-use App\Http\Controllers\USerController;
+use App\Http\Controllers\UserController;
 use App\Mail\Invitation;
 // Route::post('/register', [AdminController::class, 'store']);
 Route::post('/admin/login', [AdminController::class, 'login']);
