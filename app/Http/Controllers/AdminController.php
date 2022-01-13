@@ -36,7 +36,7 @@ class AdminController extends Controller
     public function sendInvitationToUser(InvitationRequest $request)
     {
         $user = User::where(['email' => $request->email,'registered_at'=>null])->first();
-        if(!$user)
+        if($user == null)
         {
             $this->user->create(['email' => $request->email,'invitation_token' => $request->email]);
            Mail::to($request->email)->send(new Invitation(env('APP_URL').$this->user->invitation_token));
