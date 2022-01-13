@@ -1,6 +1,6 @@
 <html>
     <body>
         Dear {{$username}},
-        Your verification otp is {{otp}}
+        Your verification otp is {{$otp}}
     </body>
 </html>

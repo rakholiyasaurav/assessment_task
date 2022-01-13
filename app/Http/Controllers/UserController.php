@@ -30,7 +30,7 @@ class UserController extends Controller
             if($user->registered_at == null)
             {
                 $user->username = $request->username;
-                $user->password = bcrypt($request->password);
+                $user->setPasswordAttribute($request->password);
                 $user->registered_at = time();
                 $user->update();
                if($user->registered_at != null)
@@ -61,9 +61,9 @@ class UserController extends Controller
 
     public function verifyEmail(VerifyEmailRequest $request)
     {        
-        if(Cache::get($request->username) == $request->otp)
+        if(Cache::get($request->email) == $request->otp)
         {
-            $user = User::where(['username' => $request->username])->update(['invitation_token' => null,'email_verified'=>true ]);
+            $user = User::where(['email' => $request->email])->update(['invitation_token' => null,'email_verified'=>true ]);
             if($user)
             {
                 Cache::forget($request->username);
@@ -115,20 +115,23 @@ class UserController extends Controller
     {
         $otp = random_int(99999,999999);
         error_log($otp);
-        Cache::add($username, $otp);
+        Cache::add($email, $otp);
         Mail::to($email)->send(new VerificationCode($username,$otp));
         return true; 
     }
 
     public function resendVerification(ResendVerificationRequest $request)
     {
-        $user = User::select('username','email','email_verified')->where('email')->first();
+        $user = User::select('username','email','email_verified')->where("email",$request->email)->first();
         if($user != null)
         {
-
             if($user->email_verified)
             {
                 return response()->json(['message' => 'You are already registered'],404);
+            }
+            elseif($user->username == null)
+            {
+                return response()->json(['message' => 'Please sign up'],404);
             }
             else
             {
