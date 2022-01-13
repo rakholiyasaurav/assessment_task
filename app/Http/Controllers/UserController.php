@@ -7,10 +7,12 @@ use App\Http\Requests\User\LoginRequest;
 use App\Http\Requests\User\StoreRequest;
 use App\Http\Requests\User\UpdateRequest;
 use App\Http\Requests\User\VerifyEmailRequest;
+use App\Http\Requests\User\ResendVerificationRequest;
 use App\Models\User;
 use Symfony\Component\HttpFoundation\Response;
 use Cache;
-
+use App\Mail\VerificationCode;
+use Mail;
 class UserController extends Controller
 {
     protected User $user;
@@ -114,6 +116,28 @@ class UserController extends Controller
         $otp = random_int(99999,999999);
         error_log($otp);
         Cache::add($username, $otp);
+        Mail::to($email)->send(new VerificationCode($username,$otp));
         return true; 
+    }
+
+    public function resendVerification(ResendVerificationRequest $request)
+    {
+        $user = User::select('username','email','email_verified')->where('email')->first();
+        if($user != null)
+        {
+
+            if($user->email_verified)
+            {
+                return response()->json(['message' => 'You are already registered'],404);
+            }
+            else
+            {
+                $this->sendOtp($user->username,$user->email);
+                return response()->json(['message' => 'Send Successfully'],200);
+            }
+        }
+        else{
+            return response()->json(['message' => 'User not found'],404);
+        }
     }
 }

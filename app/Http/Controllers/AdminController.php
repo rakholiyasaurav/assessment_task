@@ -7,6 +7,8 @@ use App\Http\Requests\User\StoreRequest;
 use App\Http\Requests\User\InvitationRequest;
 use App\Models\User;
 use Symfony\Component\HttpFoundation\Response;
+use App\Mail\Invitation;
+use Mail;
 class AdminController extends Controller
 {
     protected User $user;
@@ -34,14 +36,15 @@ class AdminController extends Controller
     public function sendInvitationToUser(InvitationRequest $request)
     {
         $user = User::where(['email' => $request->email,'registered_at'=>null])->first();
-        error_log($user);
         if(!$user)
         {
             $this->user->create(['email' => $request->email,'invitation_token' => $request->email]);
+           Mail::to($request->email)->send(new Invitation(env('APP_URL').$this->user->invitation_token));
         }
         else{
             if($user->registered_at == null)
             {
+                Mail::to($request->email)->send(new Invitation(env('APP_URL')."/api/register/".$user->invitation_token));
                 return response()->json(['message' => 'Invitation send successfully']);
             }
             else{
